@@ -1,0 +1,134 @@
+<!-- cobertura.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cobertura</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="progress-container">
+      <div class="progress-bar" style="width: 95%"></div>
+    </div>
+
+    <div class="card">
+      <h2>Cobertura (Escolha 1)</h2>
+
+      <div id="lista" class="grid-2"></div>
+
+      <hr style="margin:15px 0; opacity:0.2">
+
+      <button class="btn-next" style="background:#6a0dad" onclick="addMore()">
+        + Adicionar Outro Pedido
+      </button>
+
+      <button class="btn-next" onclick="finalizar()">
+        Finalizar Pedido
+      </button>
+
+      <button class="btn-back" onclick="voltar()">Voltar</button>
+    </div>
+  </div>
+
+  <!-- Carrinho flutuante -->
+  <button id="cart-fab" class="cart-fab" aria-label="Abrir carrinho">
+    <span class="cart-fab__icon">🛒</span>
+    <span id="cart-badge" class="cart-fab__badge" hidden>0</span>
+  </button>
+
+  <!-- Drawer -->
+  <div id="cart-drawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-drawer__overlay" data-cart-close></div>
+    <aside class="cart-drawer__panel">
+      <header class="cart-drawer__header">
+        <h3>Seu pedido</h3>
+        <button class="cart-drawer__close" data-cart-close>✕</button>
+      </header>
+      <div id="cart-items" class="cart-drawer__items"></div>
+      <footer class="cart-drawer__footer">
+        <div class="cart-drawer__totals">
+          <span>Total</span>
+          <strong id="cart-total">R$ 0,00</strong>
+        </div>
+        <button id="cart-checkout" class="cart-drawer__checkout">
+          Ir para checkout
+        </button>
+      </footer>
+    </aside>
+  </div>
+
+  <script src="cart.js"></script>
+  <script>
+    const cobs = [
+      "Mel Natural", "Chocolate", "Limão", "Abacaxi", "Mel",
+      "Doce de Leite", "Frutas Vermelhas", "Caramelo",
+      "Leite Condensado", "Morango", "Nutella",
+      "Fini Beijos", "Fini Banana", "Fini Dentadura"
+    ];
+
+    let selecionado = "";
+
+    const lista = document.getElementById("lista");
+
+    cobs.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerText = c;
+
+      btn.onclick = () => {
+        lista.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+        selecionado = c;
+        btn.classList.add("selected");
+      };
+
+      lista.appendChild(btn);
+    });
+
+    function salvarItem() {
+      const item = CartAPI.getTempItem();
+      if (!item) return;
+
+      item.cobertura = selecionado;
+
+      const meta = [
+        item.tamanho,
+        item.tipo,
+        item.sabor,
+        item.cremes?.length ? "Cremes: " + item.cremes.join(", ") : "",
+        item.complementos?.length ? "Comp: " + item.complementos.join(", ") : "",
+        item.cobertura ? "Cob: " + item.cobertura : ""
+      ].filter(Boolean).join(" | ");
+
+      CartAPI.addToCart({
+        id: item.id,
+        name: item.tipo_prod,
+        price: Number(item.preco),
+        meta
+      });
+
+      CartAPI.clearTempItem();
+    }
+
+    function addMore() {
+      salvarItem();
+      location.href = "index.html";
+    }
+
+    function finalizar() {
+      salvarItem();
+      location.href = "checkout.html";
+    }
+
+    function voltar() {
+      const item = CartAPI.getTempItem();
+      if (!item) return location.href = "index.html";
+
+      if (item.tipo_prod === "Gelato") location.href = "sabores-gelatos.html";
+      else location.href = "complementos-acai.html";
+    }
+  </script>
+</body>
+</html>

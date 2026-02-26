@@ -1,0 +1,119 @@
+<!-- complementos-acai.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complementos</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="progress-container">
+      <div class="progress-bar" style="width: 80%"></div>
+    </div>
+
+    <div class="card">
+      <h2 id="titulo">Complementos</h2>
+      <p class="muted" style="text-align:center;margin-bottom:10px;">
+        Ao atingir o limite, as opções restantes ficam ofuscadas.
+      </p>
+
+      <div id="lista" class="grid-2"></div>
+
+      <button class="btn-next" onclick="proximo()">Próximo</button>
+      <button class="btn-back" onclick="location.href='cremes.html'">Voltar</button>
+    </div>
+  </div>
+
+  <!-- Carrinho flutuante -->
+  <button id="cart-fab" class="cart-fab" aria-label="Abrir carrinho">
+    <span class="cart-fab__icon">🛒</span>
+    <span id="cart-badge" class="cart-fab__badge" hidden>0</span>
+  </button>
+
+  <!-- Drawer -->
+  <div id="cart-drawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-drawer__overlay" data-cart-close></div>
+    <aside class="cart-drawer__panel">
+      <header class="cart-drawer__header">
+        <h3>Seu pedido</h3>
+        <button class="cart-drawer__close" data-cart-close>✕</button>
+      </header>
+      <div id="cart-items" class="cart-drawer__items"></div>
+      <footer class="cart-drawer__footer">
+        <div class="cart-drawer__totals">
+          <span>Total</span>
+          <strong id="cart-total">R$ 0,00</strong>
+        </div>
+        <button id="cart-checkout" class="cart-drawer__checkout">Ir para checkout</button>
+      </footer>
+    </aside>
+  </div>
+
+  <script src="cart.js"></script>
+  <script>
+    const item = CartAPI.getTempItem();
+    if (!item) location.href = "tamanhos-acai.html";
+
+    const limites = { '250g': 4, '400g': 5, '500g': 6, '750g': 8 };
+    const max = limites[item.tamanho] || 4;
+
+    document.getElementById("titulo").innerText = `Complementos (Máx ${max})`;
+
+    const comps = [
+      "Aveia em flocos", "Granola", "Choco Power Ball", "Cereja",
+      "Gotas Choco Branco", "Mini Gotas Choco", "Creme de cookies",
+      "Sucrilhos", "Castanha de caju", "Grãos de tapioca",
+      "Leite em pó", "Farinha láctea", "M&M’s", "Marshmallow",
+      "Canudo wafer", "Amendoim", "Paçoca", "Geleia de morango",
+      "Morango", "Kiwi", "Manga", "Banana", "Uva sem semente"
+    ];
+
+    let selecionados = [];
+    const lista = document.getElementById("lista");
+
+    function refreshDisabled() {
+      const reached = selecionados.length >= max;
+
+      [...lista.querySelectorAll("button.option-btn")].forEach(btn => {
+        const nome = btn.dataset.nome;
+        const isSelected = selecionados.includes(nome);
+
+        btn.disabled = reached && !isSelected;
+        btn.classList.toggle("disabled", btn.disabled);
+      });
+    }
+
+    comps.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.innerText = c;
+      btn.dataset.nome = c;
+
+      btn.onclick = () => {
+        if (selecionados.includes(c)) {
+          selecionados = selecionados.filter(i => i !== c);
+          btn.classList.remove("selected");
+        } else if (selecionados.length < max) {
+          selecionados.push(c);
+          btn.classList.add("selected");
+        }
+
+        refreshDisabled();
+      };
+
+      lista.appendChild(btn);
+    });
+
+    refreshDisabled();
+
+    function proximo() {
+      item.complementos = selecionados;
+      CartAPI.saveTempItem(item);
+      location.href = "cobertura.html";
+    }
+  </script>
+</body>
+</html>

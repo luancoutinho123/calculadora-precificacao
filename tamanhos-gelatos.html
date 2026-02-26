@@ -1,0 +1,72 @@
+<!-- tamanhos-gelatos.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tamanhos - Gelato</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="progress-container">
+      <div class="progress-bar" style="width: 20%"></div>
+    </div>
+
+    <div class="card">
+      <h2>Escolha o Tamanho</h2>
+
+      <button class="option-btn" onclick="setS(this,'250g', 14.99)">250g <span>R$ 14,99</span></button>
+      <button class="option-btn" onclick="setS(this,'400g', 23.99)">400g <span>R$ 23,99</span></button>
+      <button class="option-btn" onclick="setS(this,'500g', 29.99)">500g <span>R$ 29,99</span></button>
+      <button class="option-btn" onclick="setS(this,'750g', 44.99)">750g <span>R$ 44,99</span></button>
+
+      <button class="btn-back" onclick="location.href='index.html'">Voltar</button>
+    </div>
+  </div>
+
+  <!-- Carrinho flutuante -->
+  <button id="cart-fab" class="cart-fab" aria-label="Abrir carrinho">
+    <span class="cart-fab__icon">🛒</span>
+    <span id="cart-badge" class="cart-fab__badge" hidden>0</span>
+  </button>
+
+  <!-- Drawer -->
+  <div id="cart-drawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-drawer__overlay" data-cart-close></div>
+    <aside class="cart-drawer__panel">
+      <header class="cart-drawer__header">
+        <h3>Seu pedido</h3>
+        <button class="cart-drawer__close" data-cart-close>✕</button>
+      </header>
+      <div id="cart-items" class="cart-drawer__items"></div>
+      <footer class="cart-drawer__footer">
+        <div class="cart-drawer__totals">
+          <span>Total</span>
+          <strong id="cart-total">R$ 0,00</strong>
+        </div>
+        <button id="cart-checkout" class="cart-drawer__checkout">Ir para checkout</button>
+      </footer>
+    </aside>
+  </div>
+
+  <script src="cart.js"></script>
+  <script>
+    function setS(btn, tamanho, preco) {
+      document.querySelectorAll(".option-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      CartAPI.saveTempItem({
+        id: "gelato-" + tamanho,
+        tipo_prod: "Gelato",
+        tamanho,
+        preco
+      });
+
+      // ✅ correto: vai para sabores-gelatos.html (plural)
+      setTimeout(() => location.href = "sabores-gelatos.html", 120);
+    }
+  </script>
+</body>
+</html>

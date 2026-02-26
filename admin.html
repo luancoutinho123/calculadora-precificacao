@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Coutinho Açaí</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>ADMIN</h2>
+      <p class="muted" style="text-align:center;margin-bottom:12px;">
+        Ajuste cupom e cardápio. Salva neste dispositivo.
+      </p>
+
+      <h2 style="font-size:1rem;margin:10px 0;">Contador de Cupom</h2>
+      <p class="muted">Último cupom usado: <b id="lastCupom">0</b></p>
+
+      <input id="setCupom" class="option-btn" placeholder="Definir número atual (ex: 243)" />
+      <button class="btn-next" onclick="salvarCupom()">Salvar Contador</button>
+
+      <hr style="margin:15px 0; opacity:0.2">
+
+      <h2 style="font-size:1rem;margin:10px 0;">Taxa de Entrega</h2>
+      <input id="deliveryFee" class="option-btn" placeholder="Ex: 1.00" />
+
+      <hr style="margin:15px 0; opacity:0.2">
+
+      <h2 style="font-size:1rem;margin:10px 0;">Cremes (1 por linha)</h2>
+      <textarea id="cremes" class="option-btn" rows="8" style="height:auto; white-space:pre-wrap;"></textarea>
+
+      <h2 style="font-size:1rem;margin:10px 0;">Complementos (1 por linha)</h2>
+      <textarea id="complementos" class="option-btn" rows="10" style="height:auto; white-space:pre-wrap;"></textarea>
+
+      <h2 style="font-size:1rem;margin:10px 0;">Coberturas (1 por linha)</h2>
+      <textarea id="coberturas" class="option-btn" rows="8" style="height:auto; white-space:pre-wrap;"></textarea>
+
+      <h2 style="font-size:1rem;margin:10px 0;">Sabores Gelato (1 por linha)</h2>
+      <textarea id="saboresGelato" class="option-btn" rows="8" style="height:auto; white-space:pre-wrap;"></textarea>
+
+      <hr style="margin:15px 0; opacity:0.2">
+
+      <button class="btn-next" onclick="salvarCardapio()">Salvar Cardápio</button>
+      <button class="btn-next" style="background:#6a0dad" onclick="restaurar()">Restaurar Padrão</button>
+      <button class="btn-back" onclick="location.href='index.html'">Voltar</button>
+    </div>
+  </div>
+
+  <script src="cart.js"></script>
+  <script>
+    function linesToArray(text) {
+      return (text || "")
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function arrayToLines(arr) {
+      return (arr || []).join("\n");
+    }
+
+    function carregarTela() {
+      // Cupom
+      document.getElementById("lastCupom").textContent = CartAPI.getLastCouponNumber() || 0;
+
+      // Cardápio
+      const cfg = CartAPI.getMenuConfig();
+      document.getElementById("deliveryFee").value = cfg.deliveryFee ?? 1.00;
+
+      document.getElementById("cremes").value = arrayToLines(cfg.cremes);
+      document.getElementById("complementos").value = arrayToLines(cfg.complementos);
+      document.getElementById("coberturas").value = arrayToLines(cfg.coberturas);
+      document.getElementById("saboresGelato").value = arrayToLines(cfg.saboresGelato);
+    }
+
+    function salvarCupom() {
+      const n = Number(document.getElementById("setCupom").value);
+      if (!CartAPI.setCouponNumber(n)) {
+        alert("Número inválido.");
+        return;
+      }
+      document.getElementById("lastCupom").textContent = CartAPI.getLastCouponNumber() || 0;
+      alert("OK! Próximo cupom será: " + (CartAPI.getLastCouponNumber() + 1));
+    }
+
+    function salvarCardapio() {
+      const cfg = CartAPI.getMenuConfig();
+
+      const fee = Number(document.getElementById("deliveryFee").value);
+      cfg.deliveryFee = Number.isFinite(fee) ? fee : 1.00;
+
+      cfg.cremes = linesToArray(document.getElementById("cremes").value);
+      cfg.complementos = linesToArray(document.getElementById("complementos").value);
+      cfg.coberturas = linesToArray(document.getElementById("coberturas").value);
+      cfg.saboresGelato = linesToArray(document.getElementById("saboresGelato").value);
+
+      CartAPI.saveMenuConfig(cfg);
+      alert("Cardápio salvo!");
+    }
+
+    function restaurar() {
+      CartAPI.resetMenuConfig();
+      carregarTela();
+      alert("Padrão restaurado.");
+    }
+
+    carregarTela();
+  </script>
+</body>
+</html>

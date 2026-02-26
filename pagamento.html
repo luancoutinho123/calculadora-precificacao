@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>Pagamento</h2>
+
+      <div id="resumo" style="margin-bottom:20px; font-size:0.95rem"></div>
+
+      <select id="metodo" class="option-btn">
+        <option value="PIX">PIX</option>
+        <option value="Cartão">Cartão</option>
+        <option value="Dinheiro">Dinheiro</option>
+      </select>
+
+      <!-- ✅ aparece só quando escolher Cartão -->
+      <select id="tipoCartao" class="option-btn" style="display:none">
+        <option value="Crédito">Crédito</option>
+        <option value="Débito">Débito</option>
+      </select>
+
+      <!-- ✅ aparece só quando escolher Dinheiro -->
+      <input type="text" id="troco" placeholder="Troco para quanto?" class="option-btn" style="display:none">
+
+      <button class="btn-next" onclick="enviar()">Enviar Pedido</button>
+      <button class="btn-back" onclick="location.href='checkout.html'">Voltar</button>
+    </div>
+  </div>
+
+  <!-- Carrinho flutuante -->
+  <button id="cart-fab" class="cart-fab" aria-label="Abrir carrinho">
+    <span class="cart-fab__icon">🛒</span>
+    <span id="cart-badge" class="cart-fab__badge" hidden>0</span>
+  </button>
+
+  <div id="cart-drawer" class="cart-drawer" aria-hidden="true">
+    <div class="cart-drawer__overlay" data-cart-close></div>
+    <aside class="cart-drawer__panel">
+      <header class="cart-drawer__header">
+        <h3>Seu pedido</h3>
+        <button class="cart-drawer__close" data-cart-close>✕</button>
+      </header>
+      <div id="cart-items" class="cart-drawer__items"></div>
+      <footer class="cart-drawer__footer">
+        <div class="cart-drawer__totals">
+          <span>Total</span>
+          <strong id="cart-total">R$ 0,00</strong>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <script src="cart.js"></script>
+  <script>
+    const cfg = CartAPI.getMenuConfig();
+    const cart = CartAPI.getCart();
+    const user = CartAPI.getUser();
+
+    const delivery = Number(cfg.deliveryFee || 1.00);
+    const subtotal = cart.reduce((t, i) => t + (Number(i.price) * Number(i.qty || 1)), 0);
+    const total = subtotal + (cart.length ? delivery : 0);
+
+    document.getElementById("resumo").innerHTML =
+      `Subtotal: <b>R$ ${subtotal.toFixed(2)}</b><br>` +
+      `Entrega: <b>R$ ${(cart.length ? delivery : 0).toFixed(2)}</b><br>` +
+      `<b>Total: R$ ${total.toFixed(2)}</b>`;
+
+    const metodoEl = document.getElementById("metodo");
+    const trocoEl = document.getElementById("troco");
+    const tipoCartaoEl = document.getElementById("tipoCartao");
+
+    function atualizarCamposPagamento() {
+      const metodo = metodoEl.value;
+
+      // Troco só no dinheiro
+      trocoEl.style.display = (metodo === "Dinheiro") ? "block" : "none";
+      if (metodo !== "Dinheiro") trocoEl.value = "";
+
+      // Tipo do cartão só no cartão
+      tipoCartaoEl.style.display = (metodo === "Cartão") ? "block" : "none";
+    }
+
+    metodoEl.addEventListener("change", atualizarCamposPagamento);
+    atualizarCamposPagamento();
+
+    function enviar() {
+      if (!cart.length) return alert("Carrinho vazio.");
+      if (!user || !user.nome || !user.end) {
+        alert("Faltam dados do cliente. Volte e preencha nome/endereço.");
+        location.href = "checkout.html";
+        return;
+      }
+
+      // ✅ gera o próximo cupom e salva data/hora do pedido
+      const cupom = CartAPI.nextCouponNumber();
+      CartAPI.setCurrentCoupon(cupom);
+      CartAPI.setCurrentDateTime(new Date().toISOString());
+
+      const metodo = metodoEl.value;
+      const troco = trocoEl.value.trim();
+      const tipoCartao = tipoCartaoEl.value;
+
+      // ✅ formata a linha de pagamento como você pediu
+      let pagamentoTexto = metodo;
+
+      if (metodo === "Cartão") {
+        pagamentoTexto = `Cartão (${tipoCartao})`;
+      }
+
+      const receipt = CartAPI.buildReceiptText({
+        paymentMethod: pagamentoTexto,
+        troco: (metodo === "Dinheiro" ? troco : "")
+      });
+
+      window.open("https://wa.me/5588996347697?text=" + encodeURIComponent(receipt.text), "_blank");
+      window.open("cupom.html", "_blank");
+
+      CartAPI.clearCurrentCoupon();
+      CartAPI.clearCurrentDateTime();
+    }
+  </script>
+</body>
+</html>
