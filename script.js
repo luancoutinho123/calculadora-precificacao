@@ -47,27 +47,30 @@ function finalizarPedido(){
     let referencia = document.getElementById("referencia").value;
     let pagamento = document.querySelector('input[name="pagamento"]:checked').value;
 
-    let subtotal = carrinho.reduce((s,item)=>s+item.valor,0);
+    let subtotal = carrinho.reduce((s,item)=>s + (item.valor || 0), 0);
     let total = subtotal + 1;
 
-    let mensagem = "🍧 *COUTINHO AÇAÍ*%0A%0A";
-    carrinho.forEach((item,i)=>{
-        mensagem += "Pedido "+(i+1)+": "+item.tipo+" - R$"+item.valor+"%0A";
-    });
-    mensagem += "%0A💰 Subtotal: R$"+subtotal.toFixed(2);
-    mensagem += "%0A🚚 Entrega: R$1,00";
-    mensagem += "%0A💵 Total: R$"+total.toFixed(2);
-    mensagem += "%0A%0A👤 "+nome;
-    mensagem += "%0A📍 "+endereco;
-    mensagem += "%0A📌 "+referencia;
-    mensagem += "%0A💳 "+pagamento;
+    // 🔹 Monta itens de forma compacta
+    let itens = carrinho.map((item, i) => {
+        return (i+1) + ") " + item.tipo + " R$" + (item.valor || 0).toFixed(2);
+    }).join(" | ");
 
-    let url = "https://wa.me/5588996347697?text="+mensagem;
+    // 🔹 Mensagem compacta e profissional
+    let mensagem = 
+`🍧 *COUTINHO AÇAÍ*
+${itens}
+
+💰 R$${total.toFixed(2)} | 🚚 1,00 incluso
+
+👤 ${nome}
+📍 ${endereco} - ${referencia}
+💳 ${pagamento}`;
+
+    let url = "https://wa.me/5588996347697?text=" + encodeURIComponent(mensagem);
     window.open(url,"_blank");
 
-    let cupomUrl = "cupom.html?nome="+nome+"&total="+total.toFixed(2);
+    let cupomUrl = "cupom.html?nome="+encodeURIComponent(nome)+"&total="+total.toFixed(2);
     window.open(cupomUrl,"_blank");
 
     localStorage.clear();
-
 }
